@@ -1,0 +1,30 @@
+{
+  "name": "node-js-getting-started",
+  "version": "0.1.5",
+  "description": "A sample Node.js app using Express 4",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "coffee-script": "^1.10.0",
+    "express": "4.13.3"
+  },
+  "engines": {
+    "node": "4.2.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/riversy/zendesk-create-ticket-app"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "zendesk",
+    "ticket",
+    "contact",
+    "submit",
+    "form"
+  ],
+  "license": "MIT"
+}
