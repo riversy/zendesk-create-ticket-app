@@ -8,6 +8,7 @@ app = express()
 app.set 'port', process.env.PORT or 5000
 app.set 'token', process.env.ZENDESK_TOKEN or 'token'
 app.set 'redirect', process.env.REDIRECT or false
+app.set 'origin', process.env.ORIGIN or "*"
 
 app.use bodyParser.urlencoded(extended: true)
 app.use bodyParser.json()
@@ -17,10 +18,21 @@ app.get '/', (req, res) ->
 
 app.post '/', (req, res) ->
 
-  console.log app.get 'token'
-  console.log app.get 'redirect'
+  res.header "Access-Control-Allow-Origin", app.get("origin")
 
-  res.status(200).json req.body
+  name = req.body.name
+  email = req.body.email
+  message = req.body.comment
+
+  if name and email and message
+
+
+
+    res.status(200).send "OK"
+
+  else
+    res.status(500).send "There are some fields were missed ヽ(^ᴗ^)丿"
+
 
 
 app.listen app.get('port'), ->
