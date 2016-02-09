@@ -12,3 +12,7 @@ Clone the repo and create Heroku app as usual. Add following environment variabl
 - **ZENDESK_DOMAIN** - domain for your company's helpdesk. *company.zendesk.com* for example. 
 
 You may define these variables in the Heroku app settings.
+
+## Creadits
+
+Created by [EcomGems](http://www.ecomgems.com).
