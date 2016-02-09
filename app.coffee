@@ -49,6 +49,8 @@ app.post '/', (req, res) ->
       comment:
         body: comment
 
+    console.log subject
+
     client.tickets.create ticket, (err, req, result) ->
 
       console.log result
