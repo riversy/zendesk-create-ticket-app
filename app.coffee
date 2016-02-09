@@ -1,23 +1,31 @@
 'use strict'
 
+fs = require 'fs'
 express = require 'express'
 bodyParser = require 'body-parser'
 zendesk = require 'node-zendesk'
-
-
-
-
 app = express()
 
 # Init variables
+try
+  fs.accessSync('./local.env.coffee', fs.R_OK)
+  local = require('./local.env.coffee')
+catch e
+  local = {}
+
 app.set 'port', process.env.PORT or 5000
-app.set 'username', process.env.ZENDESK_USERNAME or 'username'
-app.set 'domain', process.env.ZENDESK_DOMAIN or 'user.zendesk.com'
-app.set 'token', process.env.ZENDESK_TOKEN or 'token'
-app.set 'origin', process.env.ORIGIN or "*"
+app.set 'username', process.env.ZENDESK_USERNAME or local.username or 'username'
+app.set 'domain', process.env.ZENDESK_DOMAIN or local.domain or 'user.zendesk.com'
+app.set 'token', process.env.ZENDESK_TOKEN or local.token or 'token'
+app.set 'origin', process.env.ORIGIN or local.origin or "*"
 
 # Init Zendesk Client
 client = zendesk.createClient
+  username:  app.get('username')
+  token:     app.get('token')
+  remoteUri: "https://#{app.get('domain')}/api/v2"
+
+console.log
   username:  app.get('username')
   token:     app.get('token')
   remoteUri: "https://#{app.get('domain')}/api/v2"
@@ -37,24 +45,21 @@ app.post '/', (req, res) ->
 
   name = req.body.name
   email = req.body.email
-  subject = req.body.subject
   comment = req.body.comment
 
   if name and email and comment
 
-    ticket =
-      name: name
-      email: email
-      subject: subject
-      comment:
-        body: comment
+    submit =
+      ticket:
+        subject: "New message from #{name}"
+        comment:
+          body: comment
+          uploads: []
+        requester:
+          name: name
+          email: email
 
-    console.log subject
-
-    client.tickets.create ticket, (err, req, result) ->
-
-      console.log result
-
+    client.tickets.create submit, (err) ->
       if err
         res.status(500).send err
       else
@@ -62,8 +67,6 @@ app.post '/', (req, res) ->
 
   else
     res.status(500).send "There are some fields were missed ヽ(^ᴗ^)丿"
-
-
 
 app.listen app.get('port'), ->
   console.log 'Node app is running on port', app.get('port')
