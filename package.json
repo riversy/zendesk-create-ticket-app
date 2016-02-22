@@ -11,7 +11,10 @@
     "coffee-script": "^1.10.0",
     "express": "4.13.3",
     "fs": "0.0.2",
-    "node-zendesk": "^1.1.8"
+    "liquid-node": "^2.6.1",
+    "native-or-bluebird": "^1.2.0",
+    "node-zendesk": "^1.1.8",
+    "strftime": "^0.9.2"
   },
   "engines": {
     "node": "4.2.6"

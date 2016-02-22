@@ -4,7 +4,10 @@ fs = require 'fs'
 express = require 'express'
 bodyParser = require 'body-parser'
 zendesk = require 'node-zendesk'
+Liquid = require 'liquid-node'
+
 app = express()
+engine = new Liquid.Engine
 
 # Init variables
 try
@@ -13,11 +16,23 @@ try
 catch e
   local = {}
 
+# App Port
 app.set 'port', process.env.PORT or 5000
+
+# Access to Zendesk API
 app.set 'username', process.env.ZENDESK_USERNAME or local.username or 'username'
 app.set 'domain', process.env.ZENDESK_DOMAIN or local.domain or 'user.zendesk.com'
 app.set 'token', process.env.ZENDESK_TOKEN or local.token or 'token'
+
+# Security
 app.set 'origin', process.env.ORIGIN or local.origin or "*"
+
+# Custom templates
+app.set 'comment_template', process.env.COMMENT_TEMPLATE or local.comment_template or "{{ comment }}"
+app.set 'subject_template', process.env.SUBJECT_TEMPLATE or local.subject_template or "New message from {{ name }}"
+
+# Redirect after submit
+app.set 'redirect_url', process.env.REDIRECT_URL or local.redirect_url or false
 
 # Init Zendesk Client
 client = zendesk.createClient
@@ -45,28 +60,42 @@ app.post '/', (req, res) ->
 
   name = req.body.name
   email = req.body.email
-  comment = req.body.comment
+  comment = null
+  subject = null
 
-  if name and email and comment
+  engine.parseAndRender app.get('subject_template'), req.body
+  .then (value) ->
 
-    submit =
-      ticket:
-        subject: "New message from #{name}"
-        comment:
-          body: comment
-          uploads: []
-        requester:
-          name: name
-          email: email
+    subject = value
+    engine.parseAndRender app.get('comment_template'), req.body
 
-    client.tickets.create submit, (err) ->
-      if err
-        res.status(500).send err
-      else
-        res.status(200).send "OK"
+  .then (value) ->
 
-  else
-    res.status(500).send "There are some fields were missed ヽ(^ᴗ^)丿"
+    comment = value
+
+    if name and email and comment and subject
+
+      submit =
+        ticket:
+          subject: subject          
+          comment:
+            body: comment
+            uploads: []
+          requester:
+            name: name
+            email: email
+
+      client.tickets.create submit, (err) ->
+        if err
+          res.status(500).send err
+        else
+          if app.get('redirect_url')
+            res.redirect app.get('redirect_url')
+          else
+            res.status(200).send "OK"
+
+    else
+      res.status(500).send "There are some fields were missed ヽ(^ᴗ^)丿"
 
 app.listen app.get('port'), ->
   console.log 'Node app is running on port', app.get('port')
